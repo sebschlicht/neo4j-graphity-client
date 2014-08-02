@@ -26,4 +26,12 @@ public abstract class CsvParser<T > {
 
         return line.split("\t");
     }
+
+    public void close() {
+        try {
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

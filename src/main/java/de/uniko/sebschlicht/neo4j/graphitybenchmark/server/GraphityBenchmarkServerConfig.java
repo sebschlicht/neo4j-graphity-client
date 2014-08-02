@@ -7,6 +7,8 @@ public class GraphityBenchmarkServerConfig extends Config implements ZmqConfig {
 
     public String endpoint;
 
+    public String benchmark_file_path;
+
     public GraphityBenchmarkServerConfig(
             String configPath) {
         super(configPath);
@@ -20,5 +22,9 @@ public class GraphityBenchmarkServerConfig extends Config implements ZmqConfig {
     @Override
     public int getNumIOThreads() {
         return 1;
+    }
+
+    public String getBenchmarkFilePath() {
+        return benchmark_file_path;
     }
 }

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class BenchmarkFileReader extends CsvParser<Command> {
 
     public BenchmarkFileReader(
@@ -17,7 +16,8 @@ public class BenchmarkFileReader extends CsvParser<Command> {
         String[] entry;
         List<Command> commands = new LinkedList<Command>();
 
-        while (numCommands > 0 && (entry = getEntry()) != null) {
+        int numParsed = 0;
+        while (numCommands > numParsed && (entry = getEntry()) != null) {
             if (entry.length == 3 && "U".equals(entry[1])) {
                 // update
                 commands.add(new StatusUpdateCommand(entry[2]));
@@ -32,7 +32,7 @@ public class BenchmarkFileReader extends CsvParser<Command> {
                         + entry.length + ": " + entry[1]);
             }
 
-            --numCommands;
+            ++numParsed;
         }
 
         return commands;
