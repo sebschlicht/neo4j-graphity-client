@@ -1,6 +1,7 @@
 package de.uniko.sebschlicht.neo4j.graphitybenchmark.server;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.TimeUnit;
 
 import de.metalcon.zmqworker.Server;
 import de.uniko.sebschlicht.benchmarking.BenchmarkWatch;
@@ -64,6 +65,9 @@ public class WorkloadMaster extends Server<GraphityBenchmarkRequest> implements
 
         WorkloadMaster master = new WorkloadMaster(configPath);
         BenchmarkWatch watch = new BenchmarkWatch(master);
+
+        watch.setDuration(10, TimeUnit.SECONDS);
+        watch.setNumCheckpoints(5);
         watch.measure();
     }
 }

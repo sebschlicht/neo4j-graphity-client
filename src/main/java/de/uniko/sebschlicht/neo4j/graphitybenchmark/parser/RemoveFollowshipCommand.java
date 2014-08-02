@@ -9,8 +9,10 @@ public class RemoveFollowshipCommand extends Command {
     protected String idFollowed;
 
     public RemoveFollowshipCommand(
+            long timestamp,
             String idFollowing,
             String idFollowed) {
+        super(timestamp);
         this.idFollowing = idFollowing;
         this.idFollowed = idFollowed;
     }

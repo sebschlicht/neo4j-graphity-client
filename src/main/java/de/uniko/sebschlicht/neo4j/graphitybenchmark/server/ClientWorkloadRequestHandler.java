@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.hh.request_dispatcher.server.RequestHandler;
+import net.hh.request_dispatcher.RequestHandler;
 import de.metalcon.api.responses.Response;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.GraphityBenchmarkRequest;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadRequest;
@@ -38,6 +38,7 @@ public class ClientWorkloadRequestHandler implements
         primaryCommands = prepareCommands(1000000);
         secondaryCommands = prepareCommands(0);
         running = new AtomicBoolean(false);
+        progress = new AtomicInteger(0);
         setRunning(false);
     }
 

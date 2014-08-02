@@ -14,19 +14,6 @@ import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.Command;
 
 public class GraphityClient {
 
-    protected static final String URL_ROOT =
-            "http://192.168.56.101:7474/db/data/";
-
-    protected static final String URL_PLUGIN = URL_ROOT
-            + "ext/GraphityBaselinePlugin/graphdb/";
-
-    protected static final String URL_FOLLOWSHIP_ADD = URL_PLUGIN + "follow/";
-
-    protected static final String URL_FOLLOWSHIP_REMOVE = URL_PLUGIN
-            + "unfollow/";
-
-    protected static final String URL_STATUS_UPDATE_ADD = URL_PLUGIN + "post/";
-
     protected WebResource resStatus;
 
     protected WebResource resAddFollowship;
@@ -36,15 +23,19 @@ public class GraphityClient {
     protected WebResource resAddStatusUpdate;
 
     public GraphityClient(
-            boolean init) {
-        resStatus = createResource(URL_ROOT);
-        resAddFollowship = createResource(URL_FOLLOWSHIP_ADD);
-        resRemoveFollowship = createResource(URL_FOLLOWSHIP_REMOVE);
-        resAddStatusUpdate = createResource(URL_STATUS_UPDATE_ADD);
+            String serverUrl) {
+        String urlRoot = serverUrl + "db/data/";
+        resStatus = createResource(urlRoot);
+        String urlPlugin = urlRoot + "ext/GraphityBaselinePlugin/graphdb/";
 
-        if (init) {
-            init();
-        }
+        String urlAddFollowship = urlPlugin + "follow/";
+        resAddFollowship = createResource(urlAddFollowship);
+
+        String urlRemoveFollowship = urlPlugin + "unfollow/";
+        resRemoveFollowship = createResource(urlRemoveFollowship);
+
+        String urlAddStatusUpdate = urlPlugin + "post/";
+        resAddStatusUpdate = createResource(urlAddStatusUpdate);
     }
 
     public void init() {

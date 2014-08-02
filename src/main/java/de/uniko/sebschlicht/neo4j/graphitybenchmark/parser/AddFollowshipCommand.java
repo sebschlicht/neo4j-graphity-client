@@ -9,8 +9,10 @@ public class AddFollowshipCommand extends Command {
     protected String idFollowed;
 
     public AddFollowshipCommand(
+            long timestamp,
             String idFollowing,
             String idFollowed) {
+        super(timestamp);
         this.idFollowing = idFollowing;
         this.idFollowed = idFollowed;
     }

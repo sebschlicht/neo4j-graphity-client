@@ -19,11 +19,6 @@ public class GraphityBenchmarkServerConfig extends Config implements ZmqConfig {
         return endpoint;
     }
 
-    @Override
-    public int getNumIOThreads() {
-        return 1;
-    }
-
     public String getBenchmarkFilePath() {
         return benchmark_file_path;
     }
