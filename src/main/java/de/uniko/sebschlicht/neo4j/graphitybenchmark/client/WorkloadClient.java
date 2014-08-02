@@ -1,9 +1,13 @@
 package de.uniko.sebschlicht.neo4j.graphitybenchmark.client;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.TimeoutException;
 
 import net.hh.request_dispatcher.Dispatcher;
 import net.hh.request_dispatcher.RequestException;
+import de.metalcon.api.responses.Response;
 import de.uniko.sebschlicht.neo4j.GraphityClient;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.GraphityBenchmarkRequest;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadRequest;
@@ -22,28 +26,84 @@ public class WorkloadClient implements Runnable {
 
     GraphityClient client;
 
-    public WorkloadClient() {
+    protected Thread thread;
+
+    public WorkloadClient(
+            String serverUrl) {
         dispatcher = new Dispatcher();
         dispatcher.registerService(GraphityBenchmarkRequest.class,
                 GRAPHITY_BENCHMARK_MASTER_ENDPOINT);
-        client = new GraphityClient("http://192.168.56.101:7474/");
+        client = new GraphityClient(serverUrl);
     }
 
-    public Command getCommand() throws RequestException, TimeoutException {
-        WorkloadResponse response =
-                (WorkloadResponse) dispatcher.executeSync(
-                        new WorkloadRequest(), 100);
-        return response.getCommand();
+    public Command getCommand(boolean first) throws RequestException,
+            TimeoutException {
+        Response response;
+        if (!first) {
+            response =
+                    (Response) dispatcher.executeSync(new WorkloadRequest(),
+                            10000);
+        } else {
+            response = (Response) dispatcher.executeSync(new WorkloadRequest());
+        }
+
+        if (response != null) {
+            if (response instanceof WorkloadResponse) {
+                return ((WorkloadResponse) response).getCommand();
+            }
+            throw new IllegalArgumentException("unknown master response "
+                    + response.getClass());
+        }
+        throw new IllegalStateException("connection to master aborted");
+    }
+
+    public void start() {
+        thread = new Thread(this);
+        thread.start();
+    }
+
+    public void stop() {
+        dispatcher.shutdown();
+
+    }
+
+    public static void main(String[] args) throws IOException {
+        final WorkloadClient client =
+                new WorkloadClient("http://192.168.56.101:7474/");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    client.stop();
+                } catch (Exception e) {
+                    // ship sinking
+                }
+            }
+        });
+
+        BufferedReader in =
+                new BufferedReader(new InputStreamReader(System.in));
+        String cmd;
+
+        client.start();
+        while ((cmd = in.readLine()) != null) {
+            if ("exit".equals(cmd)) {
+                break;
+            } else {
+                System.out
+                        .println("unknown command. type \"exit\" to shutdown client.");
+            }
+        }
     }
 
     @Override
     public void run() {
         try {
-            Command command;
-            boolean exit = false;
+            Command command = null;
             do {
                 try {
-                    command = getCommand();
+                    command = getCommand(command == null);
                     if (command == null) {
                         break;
                     }

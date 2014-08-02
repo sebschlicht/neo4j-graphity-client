@@ -89,10 +89,11 @@ public class GraphityClient {
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
         try {
-            return Long.parseLong(responseMessage);
+            return Long.parseLong(responseMessage.substring(1,
+                    responseMessage.length() - 1));
         } catch (NumberFormatException e) {
-            System.err
-                    .println("\"" + responseMessage + "\" is no valid number");
+            System.err.println("status update id \"" + responseMessage
+                    + "\" passed by server is no valid number");
             return null;
         }
     }

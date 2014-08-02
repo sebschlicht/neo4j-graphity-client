@@ -84,9 +84,11 @@
             </goals>
           </execution>
         </executions>
+        <!--
         <configuration>
           <mainClass>${java.exec.launcherClass}</mainClass>
         </configuration>
+        -->
       </plugin>
 
       <!-- attach source code -->
