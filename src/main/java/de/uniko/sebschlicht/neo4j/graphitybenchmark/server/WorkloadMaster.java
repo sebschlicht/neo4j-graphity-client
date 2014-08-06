@@ -44,9 +44,9 @@ public class WorkloadMaster extends Server<GraphityBenchmarkRequest> implements
 
     @Override
     public void run() {
-        // TODO start clients
-
         requestHandler.setRunning(true);
+
+        // TODO start clients
     }
 
     @Override

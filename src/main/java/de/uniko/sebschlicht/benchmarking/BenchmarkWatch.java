@@ -30,9 +30,9 @@ public class BenchmarkWatch {
 
     public BenchmarkWatch(
             Benchmarkable benchmark) {
-        this.watch = new StopWatch();
+        watch = new StopWatch();
         this.benchmark = benchmark;
-        this.numCheckpoints = 1;
+        numCheckpoints = 1;
     }
 
     public void setNumCheckpoints(int numCheckpoints) {
@@ -40,30 +40,40 @@ public class BenchmarkWatch {
     }
 
     public void setDuration(long maxDuration, TimeUnit timeUnit) {
-        this.duration = TimeUnit.MILLISECONDS.convert(maxDuration, timeUnit);
+        duration = TimeUnit.MILLISECONDS.convert(maxDuration, timeUnit);
     }
 
     protected void startBenchmark() {
-        this.benchmarkThread = new Thread(this.benchmark);
-        this.benchmark.init();
-        this.benchmarkThread.start();
+        benchmarkThread = new Thread(benchmark);
+        benchmark.init();
+        benchmarkThread.start();
     }
 
     public void measure() {
-        this.running = true;
+        running = true;
 
-        this.startBenchmark();
-        this.watch.start();
+        startBenchmark();
+        watch.start();
 
-        long rate = this.duration / this.numCheckpoints;
+        //TODO find better solution: makes benchmark inaccurate (+/- 5ms)
+        while (!benchmark.isRunning()) {
+            // wait for benchmark to be ready
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        long rate = duration / numCheckpoints;
         long timeNextCheckpoint = System.currentTimeMillis();
 
         measurement:
-        for (int crrCP = 0; crrCP < this.numCheckpoints; crrCP++) {
+        for (int crrCP = 0; crrCP < numCheckpoints; crrCP++) {
             timeNextCheckpoint += rate;
             while (System.currentTimeMillis() < timeNextCheckpoint) {
                 // TODO wait using small sleep value to be accurate?
-                if (!this.benchmark.isRunning()) {
+                if (!benchmark.isRunning()) {
                     LOG.info("benchmark finished in time");
 
                     break measurement;
@@ -72,26 +82,26 @@ public class BenchmarkWatch {
 
             // print duration and progress
             LOG.info("progress after "
-                    + this.watch.getDuration(TimeUnit.MILLISECONDS) + "ms: "
-                    + this.benchmark.getProgress());
+                    + watch.getDuration(TimeUnit.MILLISECONDS) + "ms: "
+                    + benchmark.getProgress());
         }
-        this.watch.stop();
+        watch.stop();
 
         // print total progress
-        LOG.info("total progress in run: " + this.benchmark.getProgress());
+        LOG.info("total progress in run: " + benchmark.getProgress());
 
-        this.stop();
+        stop();
     }
 
     public void stop() {
-        if (this.running) {
-            this.running = false;
+        if (running) {
+            running = false;
 
             // TODO stop watch if running
 
-            this.benchmark.stop();
+            benchmark.stop();
             try {
-                this.benchmarkThread.join();
+                benchmarkThread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

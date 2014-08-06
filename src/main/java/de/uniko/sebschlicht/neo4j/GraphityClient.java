@@ -1,16 +1,12 @@
 package de.uniko.sebschlicht.neo4j;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.BenchmarkFileReader;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.Command;
 
 public class GraphityClient {
 
@@ -53,6 +49,17 @@ public class GraphityClient {
         return statusCode;
     }
 
+    private static boolean parseBoolean(String sBoolean) {
+        if ("true".equals(sBoolean)) {
+            return true;
+        } else if ("false".equals(sBoolean)) {
+            return false;
+        }
+        throw new IllegalArgumentException(
+                "String value does not represent a boolean value.\nvalue: \""
+                        + sBoolean + "\"");
+    }
+
     public boolean addFollowship(String idFollowing, String idFollowed) {
         String jsonString =
                 "{\"following\":\"" + idFollowing + "\",\"followed\":\""
@@ -63,7 +70,7 @@ public class GraphityClient {
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
         response.close();
-        return "true".equals(responseMessage);
+        return parseBoolean(responseMessage);
     }
 
     public boolean removeFollowship(String idFollowing, String idFollowed) {
@@ -76,7 +83,7 @@ public class GraphityClient {
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
         response.close();
-        return "true".equals(responseMessage);
+        return parseBoolean(responseMessage);
     }
 
     public Long addStatusUpdate(String idAuthor, String message) {
@@ -92,9 +99,9 @@ public class GraphityClient {
             return Long.parseLong(responseMessage.substring(1,
                     responseMessage.length() - 1));
         } catch (NumberFormatException e) {
-            System.err.println("status update id \"" + responseMessage
-                    + "\" passed by server is no valid number");
-            return null;
+            throw new IllegalArgumentException(
+                    "invalid status update id passed by server\nvalue: \""
+                            + responseMessage + "\"");
         }
     }
 
@@ -103,16 +110,8 @@ public class GraphityClient {
     }
 
     public static void main(String[] args) throws IOException {
-        //        String filePath = "/media/ubuntu-prog/wiki-data/de-events.log";
-        String filePath = "/tmp/de-events.log";
-        BenchmarkFileReader reader = new BenchmarkFileReader(filePath);
-
-        int i = 0;
-        List<Command> commands;
-        do {
-            commands = reader.loadCommands(10000000);
-            i += commands.size();
-            System.out.println(i);
-        } while (commands.size() > 0);
+        GraphityClient client =
+                new GraphityClient("http://192.168.56.101:7474/");
+        System.out.println(client.addFollowship("1", "29458"));
     }
 }
