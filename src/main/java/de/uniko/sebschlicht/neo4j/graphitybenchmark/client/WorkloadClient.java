@@ -15,6 +15,7 @@ import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadResponse;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.AddFollowshipCommand;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.AddStatusUpdateCommand;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.Command;
+import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.ReadStatusUpdateCommand;
 import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.RemoveFollowshipCommand;
 
 public class WorkloadClient implements Runnable {
@@ -137,14 +138,17 @@ public class WorkloadClient implements Runnable {
                     } else if (command instanceof AddStatusUpdateCommand) {
                         AddStatusUpdateCommand addStatusUpdateCommand =
                                 (AddStatusUpdateCommand) command;
-                        if (client.addStatusUpdate(
+                        client.addStatusUpdate(
                                 addStatusUpdateCommand.getAuthorId(),
-                                addStatusUpdateCommand.getMessage()) == null) {
-                            System.err.println("failed to add status update #"
-                                    + addStatusUpdateCommand.getTimestamp()
-                                    + " to "
-                                    + addStatusUpdateCommand.getAuthorId());
-                        }
+                                addStatusUpdateCommand.getMessage());
+                    } else if (command instanceof ReadStatusUpdateCommand) {
+                        ReadStatusUpdateCommand readStatusUpdateCommand =
+                                (ReadStatusUpdateCommand) command;
+                        System.out.println(client
+                                .readStatusUpdates(readStatusUpdateCommand
+                                        .getReaderId())
+                                + " status updates read for "
+                                + readStatusUpdateCommand.getReaderId());
                     } else {
                         throw new IllegalArgumentException(
                                 "unknown response: \"" + command.getClass()

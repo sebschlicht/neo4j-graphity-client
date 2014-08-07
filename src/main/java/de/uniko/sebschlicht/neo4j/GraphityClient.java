@@ -18,6 +18,8 @@ public class GraphityClient {
 
     protected WebResource resAddStatusUpdate;
 
+    protected WebResource resReadStatusUpdates;
+
     public GraphityClient(
             String serverUrl) {
         String urlRoot = serverUrl + "db/data/";
@@ -32,6 +34,9 @@ public class GraphityClient {
 
         String urlAddStatusUpdate = urlPlugin + "post/";
         resAddStatusUpdate = createResource(urlAddStatusUpdate);
+
+        String urlReadStatusUpdates = urlPlugin + "feeds/";
+        resReadStatusUpdates = createResource(urlReadStatusUpdates);
     }
 
     public void init() {
@@ -86,7 +91,7 @@ public class GraphityClient {
         return parseBoolean(responseMessage);
     }
 
-    public Long addStatusUpdate(String idAuthor, String message) {
+    public long addStatusUpdate(String idAuthor, String message) {
         String jsonString =
                 "{\"author\":\"" + idAuthor + "\",\"message\":\"" + message
                         + "\"}";
@@ -101,6 +106,23 @@ public class GraphityClient {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
                     "invalid status update id passed by server\nvalue: \""
+                            + responseMessage + "\"");
+        }
+    }
+
+    public int readStatusUpdates(String idReader) {
+        String jsonString = "{\"reader\":\"" + idReader + "\"}";
+        ClientResponse response =
+                resReadStatusUpdates.accept(MediaType.APPLICATION_JSON)
+                        .type(MediaType.APPLICATION_JSON).entity(jsonString)
+                        .post(ClientResponse.class);
+        String responseMessage = response.getEntity(String.class);
+        try {
+            return Integer.parseInt(responseMessage.substring(1,
+                    responseMessage.length() - 1));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "invalid status update count passed by server\nvalue: \""
                             + responseMessage + "\"");
         }
     }
