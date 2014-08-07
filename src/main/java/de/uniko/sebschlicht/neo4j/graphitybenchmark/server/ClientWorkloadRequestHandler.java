@@ -35,6 +35,8 @@ public class ClientWorkloadRequestHandler implements
     public ClientWorkloadRequestHandler(
             BenchmarkFileReader reader) {
         this.reader = reader;
+        // drop first 1m commands
+        //        prepareCommands(1000000);
         primaryCommands = prepareCommands(1000000);
         secondaryCommands = prepareCommands(0);
         running = new AtomicBoolean(false);

@@ -112,6 +112,6 @@ public class GraphityClient {
     public static void main(String[] args) throws IOException {
         GraphityClient client =
                 new GraphityClient("http://192.168.56.101:7474/");
-        System.out.println(client.addFollowship("1", "29458"));
+        System.out.println(client.addFollowship("1", "3"));
     }
 }
