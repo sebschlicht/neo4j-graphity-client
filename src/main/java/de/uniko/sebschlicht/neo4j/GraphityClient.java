@@ -4,11 +4,18 @@ import java.io.IOException;
 
 import javax.ws.rs.core.MediaType;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 public class GraphityClient {
+
+    protected static final JSONParser JSON_PARSER = new JSONParser();
 
     protected WebResource resStatus;
 
@@ -110,7 +117,7 @@ public class GraphityClient {
         }
     }
 
-    public int readStatusUpdates(String idReader) {
+    public String readStatusUpdates(String idReader) {
         String jsonString = "{\"reader\":\"" + idReader + "\"}";
         ClientResponse response =
                 resReadStatusUpdates.accept(MediaType.APPLICATION_JSON)
@@ -118,11 +125,22 @@ public class GraphityClient {
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
         try {
-            return Integer.parseInt(responseMessage.substring(1,
-                    responseMessage.length() - 1));
-        } catch (NumberFormatException e) {
+            JSONArray statusUpdates =
+                    (JSONArray) JSON_PARSER
+                            .parse(responseMessage.substring(1,
+                                    responseMessage.length() - 1).replace(
+                                    "\\\"", "\""));
+
+            responseMessage = "";
+            for (int i = 0; i < statusUpdates.size(); ++i) {
+                JSONObject o = (JSONObject) statusUpdates.get(i);
+                responseMessage += o.get("message") + "\n";
+            }
+            return responseMessage;
+        } catch (ParseException e) {
+            e.printStackTrace();
             throw new IllegalArgumentException(
-                    "invalid status update count passed by server\nvalue: \""
+                    "invalid status update list passed by server\nvalue: \""
                             + responseMessage + "\"");
         }
     }
@@ -134,6 +152,16 @@ public class GraphityClient {
     public static void main(String[] args) throws IOException {
         GraphityClient client =
                 new GraphityClient("http://192.168.56.101:7474/");
+        System.out.println(client.addFollowship("1", "2"));
         System.out.println(client.addFollowship("1", "3"));
+
+        System.out.println(client.addStatusUpdate("3", "Testy0"));
+        System.out.println(client.addStatusUpdate("2", "Testy1"));
+        System.out.println(client.addStatusUpdate("4", "Testy2"));
+        System.out.println(client.addStatusUpdate("3", "Testy3"));
+        System.out.println(client.addStatusUpdate("2", "Testy4"));
+        System.out.println(client.addStatusUpdate("2", "Testy5"));
+
+        System.out.println(client.readStatusUpdates("1"));
     }
 }

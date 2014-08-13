@@ -33,6 +33,7 @@
     <!-- dependency versions: production -->
     <jersey.version>1.9</jersey.version>
     <metalcon.zmq>0.5.1</metalcon.zmq>
+    <json.version>1.1</json.version>
   </properties>
 
   <dependencies>
@@ -45,6 +46,11 @@
       <groupId>de.metalcon</groupId>
       <artifactId>zmq-worker-helper</artifactId>
       <version>${metalcon.zmq}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>${json.version}</version>
     </dependency>
   </dependencies>
 
