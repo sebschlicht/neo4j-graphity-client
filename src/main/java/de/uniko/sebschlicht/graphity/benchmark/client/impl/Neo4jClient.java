@@ -1,77 +1,55 @@
-package de.uniko.sebschlicht.neo4j;
+package de.uniko.sebschlicht.graphity.benchmark.client.impl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.ws.rs.core.MediaType;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
-public class GraphityClient {
+import de.uniko.sebschlicht.graphity.benchmark.client.GraphityClient;
+import de.uniko.sebschlicht.graphity.benchmark.client.WorkloadClient;
 
-    protected static final JSONParser JSON_PARSER = new JSONParser();
+public class Neo4jClient extends AbstractGraphityClient {
 
-    protected WebResource resStatus;
+    protected static final String URL_PLUGIN =
+            "ext/GraphityBaselinePlugin/graphdb/";
 
-    protected WebResource resAddFollowship;
-
-    protected WebResource resRemoveFollowship;
-
-    protected WebResource resAddStatusUpdate;
-
-    protected WebResource resReadStatusUpdates;
-
-    public GraphityClient(
+    public Neo4jClient(
             String serverUrl) {
-        String urlRoot = serverUrl + "db/data/";
-        resStatus = createResource(urlRoot);
-        String urlPlugin = urlRoot + "ext/GraphityBaselinePlugin/graphdb/";
-
-        String urlAddFollowship = urlPlugin + "follow/";
-        resAddFollowship = createResource(urlAddFollowship);
-
-        String urlRemoveFollowship = urlPlugin + "unfollow/";
-        resRemoveFollowship = createResource(urlRemoveFollowship);
-
-        String urlAddStatusUpdate = urlPlugin + "post/";
-        resAddStatusUpdate = createResource(urlAddStatusUpdate);
-
-        String urlReadStatusUpdates = urlPlugin + "feeds/";
-        resReadStatusUpdates = createResource(urlReadStatusUpdates);
+        super(serverUrl);
     }
 
-    public void init() {
-        int statusCode = getStatus();
-        if (statusCode != ClientResponse.Status.OK.getStatusCode()) {
-            throw new IllegalStateException(
-                    "server not ready for requests: status code " + statusCode);
-        }
+    @Override
+    protected String getUrlStatus() {
+        return serverUrl + "db/data";
     }
 
-    public int getStatus() {
-        ClientResponse response = resStatus.get(ClientResponse.class);
-        int statusCode = response.getStatus();
-        response.close();
-        return statusCode;
+    @Override
+    protected String getUrlAddFollowship() {
+        return serverUrl + URL_PLUGIN + "follow/";
     }
 
-    private static boolean parseBoolean(String sBoolean) {
-        if ("true".equals(sBoolean)) {
-            return true;
-        } else if ("false".equals(sBoolean)) {
-            return false;
-        }
-        throw new IllegalArgumentException(
-                "String value does not represent a boolean value.\nvalue: \""
-                        + sBoolean + "\"");
+    @Override
+    protected String getUrlRemoveFollowship() {
+        return serverUrl + URL_PLUGIN + "unfollow/";
     }
 
+    @Override
+    protected String getUrlAddStatusUpdate() {
+        return serverUrl + URL_PLUGIN + "post/";
+    }
+
+    @Override
+    protected String getUrlReadStatusUpdates() {
+        return serverUrl + URL_PLUGIN + "feeds/";
+    }
+
+    @Override
     public boolean addFollowship(String idFollowing, String idFollowed) {
         String jsonString =
                 "{\"following\":\"" + idFollowing + "\",\"followed\":\""
@@ -85,6 +63,7 @@ public class GraphityClient {
         return parseBoolean(responseMessage);
     }
 
+    @Override
     public boolean removeFollowship(String idFollowing, String idFollowed) {
         String jsonString =
                 "{\"following\":\"" + idFollowing + "\",\"followed\":\""
@@ -98,6 +77,7 @@ public class GraphityClient {
         return parseBoolean(responseMessage);
     }
 
+    @Override
     public long addStatusUpdate(String idAuthor, String message) {
         String jsonString =
                 "{\"author\":\"" + idAuthor + "\",\"message\":\"" + message
@@ -107,6 +87,7 @@ public class GraphityClient {
                         .type(MediaType.APPLICATION_JSON).entity(jsonString)
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
+        response.close();
         try {
             return Long.parseLong(responseMessage.substring(1,
                     responseMessage.length() - 1));
@@ -117,13 +98,15 @@ public class GraphityClient {
         }
     }
 
-    public String readStatusUpdates(String idReader) {
+    @Override
+    public int readStatusUpdates(String idReader) {
         String jsonString = "{\"reader\":\"" + idReader + "\"}";
         ClientResponse response =
                 resReadStatusUpdates.accept(MediaType.APPLICATION_JSON)
                         .type(MediaType.APPLICATION_JSON).entity(jsonString)
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
+        response.close();
         try {
             JSONArray statusUpdates =
                     (JSONArray) JSON_PARSER
@@ -131,12 +114,7 @@ public class GraphityClient {
                                     responseMessage.length() - 1).replace(
                                     "\\\"", "\""));
 
-            responseMessage = "";
-            for (int i = 0; i < statusUpdates.size(); ++i) {
-                JSONObject o = (JSONObject) statusUpdates.get(i);
-                responseMessage += o.get("message") + "\n";
-            }
-            return responseMessage;
+            return statusUpdates.size();
         } catch (ParseException e) {
             e.printStackTrace();
             throw new IllegalArgumentException(
@@ -145,23 +123,34 @@ public class GraphityClient {
         }
     }
 
-    protected static WebResource createResource(String url) {
-        return Client.create().resource(url);
-    }
-
     public static void main(String[] args) throws IOException {
-        GraphityClient client =
-                new GraphityClient("http://192.168.56.101:7474/");
-        System.out.println(client.addFollowship("1", "2"));
-        System.out.println(client.addFollowship("1", "3"));
+        String serverUrl = "http://192.168.56.101:7474";
+        GraphityClient neoClient = new Neo4jClient(serverUrl);
+        final WorkloadClient client = new WorkloadClient(neoClient);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
 
-        System.out.println(client.addStatusUpdate("3", "Testy0"));
-        System.out.println(client.addStatusUpdate("2", "Testy1"));
-        System.out.println(client.addStatusUpdate("4", "Testy2"));
-        System.out.println(client.addStatusUpdate("3", "Testy3"));
-        System.out.println(client.addStatusUpdate("2", "Testy4"));
-        System.out.println(client.addStatusUpdate("2", "Testy5"));
+            @Override
+            public void run() {
+                try {
+                    client.stop();
+                } catch (Exception e) {
+                    // ship sinking
+                }
+            }
+        });
 
-        System.out.println(client.readStatusUpdates("1"));
+        BufferedReader in =
+                new BufferedReader(new InputStreamReader(System.in));
+        String cmd;
+
+        client.start();
+        while ((cmd = in.readLine()) != null) {
+            if ("exit".equals(cmd)) {
+                break;
+            } else {
+                System.out
+                        .println("unknown command. type \"exit\" to shutdown client.");
+            }
+        }
     }
 }

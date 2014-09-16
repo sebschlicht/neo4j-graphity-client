@@ -1,14 +1,14 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.parser;
+package de.uniko.sebschlicht.graphity.benchmark.parser;
 
-public class AddFollowshipCommand extends Command {
+public class RemoveFollowshipCommand extends Command {
 
-    private static final long serialVersionUID = 1454125563140301100L;
+    private static final long serialVersionUID = -3857879278729675685L;
 
     protected String idFollowing;
 
     protected String idFollowed;
 
-    public AddFollowshipCommand(
+    public RemoveFollowshipCommand(
             long timestamp,
             String idFollowing,
             String idFollowed) {

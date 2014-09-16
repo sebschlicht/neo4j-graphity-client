@@ -1,4 +1,4 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.server;
+package de.uniko.sebschlicht.graphity.benchmark.server;
 
 import java.io.FileNotFoundException;
 import java.util.concurrent.TimeUnit;
@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 import de.metalcon.zmqworker.Server;
 import de.uniko.sebschlicht.benchmarking.BenchmarkWatch;
 import de.uniko.sebschlicht.benchmarking.Benchmarkable;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.GraphityBenchmarkRequest;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.BenchmarkFileReader;
+import de.uniko.sebschlicht.graphity.benchmark.commands.GraphityBenchmarkRequest;
+import de.uniko.sebschlicht.graphity.benchmark.parser.BenchmarkFileReader;
 
 public class WorkloadMaster extends Server<GraphityBenchmarkRequest> implements
         Benchmarkable {

@@ -1,4 +1,4 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.server;
+package de.uniko.sebschlicht.graphity.benchmark.server;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -9,14 +9,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.hh.request_dispatcher.RequestHandler;
 import de.metalcon.api.responses.Response;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.GraphityBenchmarkRequest;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadRequest;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadResponse;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.BenchmarkFileReader;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.Command;
+import de.uniko.sebschlicht.graphity.benchmark.commands.GraphityBenchmarkRequest;
+import de.uniko.sebschlicht.graphity.benchmark.commands.WorkloadRequest;
+import de.uniko.sebschlicht.graphity.benchmark.commands.WorkloadResponse;
+import de.uniko.sebschlicht.graphity.benchmark.parser.BenchmarkFileReader;
+import de.uniko.sebschlicht.graphity.benchmark.parser.Command;
 
 public class ClientWorkloadRequestHandler implements
         RequestHandler<GraphityBenchmarkRequest, Response> {
+
+    private static final long serialVersionUID = -8022119299309887332L;
 
     protected boolean _running;
 
@@ -73,7 +75,6 @@ public class ClientWorkloadRequestHandler implements
         while (!_running && !_stopping) {
             long crrMs = System.currentTimeMillis();
             while (System.currentTimeMillis() < crrMs + 100) {
-                //TODO how long will clients wait for a response?
                 // wait until started
             }
         }

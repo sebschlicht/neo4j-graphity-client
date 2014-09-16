@@ -1,22 +1,18 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.client;
+package de.uniko.sebschlicht.graphity.benchmark.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.concurrent.TimeoutException;
 
 import net.hh.request_dispatcher.Dispatcher;
 import net.hh.request_dispatcher.RequestException;
 import de.metalcon.api.responses.Response;
-import de.uniko.sebschlicht.neo4j.GraphityClient;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.GraphityBenchmarkRequest;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadRequest;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.commands.WorkloadResponse;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.AddFollowshipCommand;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.AddStatusUpdateCommand;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.Command;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.ReadStatusUpdateCommand;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.RemoveFollowshipCommand;
+import de.uniko.sebschlicht.graphity.benchmark.commands.GraphityBenchmarkRequest;
+import de.uniko.sebschlicht.graphity.benchmark.commands.WorkloadRequest;
+import de.uniko.sebschlicht.graphity.benchmark.commands.WorkloadResponse;
+import de.uniko.sebschlicht.graphity.benchmark.parser.AddFollowshipCommand;
+import de.uniko.sebschlicht.graphity.benchmark.parser.AddStatusUpdateCommand;
+import de.uniko.sebschlicht.graphity.benchmark.parser.Command;
+import de.uniko.sebschlicht.graphity.benchmark.parser.ReadStatusUpdateCommand;
+import de.uniko.sebschlicht.graphity.benchmark.parser.RemoveFollowshipCommand;
 
 public class WorkloadClient implements Runnable {
 
@@ -30,11 +26,11 @@ public class WorkloadClient implements Runnable {
     protected Thread thread;
 
     public WorkloadClient(
-            String serverUrl) {
+            GraphityClient client) {
         dispatcher = new Dispatcher();
         dispatcher.registerService(GraphityBenchmarkRequest.class,
                 GRAPHITY_BENCHMARK_MASTER_ENDPOINT);
-        client = new GraphityClient(serverUrl);
+        this.client = client;
     }
 
     public Command getCommand(boolean first) throws RequestException,
@@ -66,36 +62,6 @@ public class WorkloadClient implements Runnable {
     public void stop() {
         dispatcher.shutdown();
 
-    }
-
-    public static void main(String[] args) throws IOException {
-        final WorkloadClient client =
-                new WorkloadClient("http://192.168.56.101:7474/");
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    client.stop();
-                } catch (Exception e) {
-                    // ship sinking
-                }
-            }
-        });
-
-        BufferedReader in =
-                new BufferedReader(new InputStreamReader(System.in));
-        String cmd;
-
-        client.start();
-        while ((cmd = in.readLine()) != null) {
-            if ("exit".equals(cmd)) {
-                break;
-            } else {
-                System.out
-                        .println("unknown command. type \"exit\" to shutdown client.");
-            }
-        }
     }
 
     @Override
@@ -144,11 +110,14 @@ public class WorkloadClient implements Runnable {
                     } else if (command instanceof ReadStatusUpdateCommand) {
                         ReadStatusUpdateCommand readStatusUpdateCommand =
                                 (ReadStatusUpdateCommand) command;
-                        System.out.println(client
-                                .readStatusUpdates(readStatusUpdateCommand
-                                        .getReaderId())
-                                + " status updates read for "
-                                + readStatusUpdateCommand.getReaderId());
+                        int numRead =
+                                client.readStatusUpdates(readStatusUpdateCommand
+                                        .getReaderId());
+                        if (numRead > 0) {
+                            System.out.println(numRead
+                                    + " status updates read for "
+                                    + readStatusUpdateCommand.getReaderId());
+                        }
                     } else {
                         throw new IllegalArgumentException(
                                 "unknown response: \"" + command.getClass()

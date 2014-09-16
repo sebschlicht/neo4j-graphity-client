@@ -1,4 +1,4 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.commands;
+package de.uniko.sebschlicht.graphity.benchmark.commands;
 
 import java.io.Serializable;
 

@@ -1,7 +1,7 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.commands;
+package de.uniko.sebschlicht.graphity.benchmark.commands;
 
 import de.metalcon.api.responses.Response;
-import de.uniko.sebschlicht.neo4j.graphitybenchmark.parser.Command;
+import de.uniko.sebschlicht.graphity.benchmark.parser.Command;
 
 public class WorkloadResponse extends Response {
 

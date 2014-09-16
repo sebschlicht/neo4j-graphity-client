@@ -1,4 +1,4 @@
-package de.uniko.sebschlicht.neo4j.graphitybenchmark.server;
+package de.uniko.sebschlicht.graphity.benchmark.server;
 
 import de.metalcon.utils.Config;
 import de.metalcon.zmqworker.ZmqConfig;
