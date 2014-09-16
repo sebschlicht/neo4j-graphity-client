@@ -1,12 +1,18 @@
 package de.uniko.sebschlicht.graphity.benchmark.client.impl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import javax.ws.rs.core.MediaType;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 import com.sun.jersey.api.client.ClientResponse;
+
+import de.uniko.sebschlicht.graphity.benchmark.client.GraphityClient;
+import de.uniko.sebschlicht.graphity.benchmark.client.WorkloadClient;
 
 public class TitanClient extends AbstractGraphityClient {
 
@@ -102,50 +108,57 @@ public class TitanClient extends AbstractGraphityClient {
                         .post(ClientResponse.class);
         String responseMessage = response.getEntity(String.class);
         response.close();
-        try {
-            JSONArray statusUpdates =
-                    (JSONArray) JSON_PARSER.parse(responseMessage);
+        JSONObject json = parseJson(responseMessage);
+        if (json != null) {
+            JSONArray statusUpdates = (JSONArray) json.get(KEY_RESPONSE);
             return statusUpdates.size();
-        } catch (ParseException e) {
-            throw new IllegalArgumentException(e);
+        }
+        throw new IllegalStateException("no status update list");
+    }
+
+    public static void main(String[] args) throws IOException {
+        String serverUrl = "http://192.168.56.101:8182";
+        GraphityClient titanClient = new TitanClient(serverUrl);
+        long t = System.currentTimeMillis();
+        System.out.println(titanClient.addStatusUpdate("1", "test"));
+        System.out.println(System.currentTimeMillis() - t);
+        t = System.currentTimeMillis();
+        System.out.println(titanClient.addFollowship("2", "1"));
+        System.out.println(System.currentTimeMillis() - t);
+        t = System.currentTimeMillis();
+        System.out.println(titanClient.readStatusUpdates("2"));
+        System.out.println(System.currentTimeMillis() - t);
+        t = System.currentTimeMillis();
+        boolean debug = true;
+        if (debug) {
+            return;
+        }
+
+        final WorkloadClient client = new WorkloadClient(titanClient);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    client.stop();
+                } catch (Exception e) {
+                    // ship sinking
+                }
+            }
+        });
+
+        BufferedReader in =
+                new BufferedReader(new InputStreamReader(System.in));
+        String cmd;
+
+        client.start();
+        while ((cmd = in.readLine()) != null) {
+            if ("exit".equals(cmd)) {
+                break;
+            } else {
+                System.out
+                        .println("unknown command. type \"exit\" to shutdown client.");
+            }
         }
     }
-
-    public static void main(String[] args) {
-        TitanClient tc = new TitanClient("http://192.168.56.101:8182");
-        long t = System.currentTimeMillis();
-        System.out.println(tc.addFollowship("6", "8"));
-        System.out.println(System.currentTimeMillis() - t);
-    }
-
-    //    public static void main(String[] args) throws IOException {
-    //        String serverUrl = "http://192.168.56.101:8182";
-    //        GraphityClient titanClient = new TitanClient(serverUrl);
-    //        final WorkloadClient client = new WorkloadClient(titanClient);
-    //        Runtime.getRuntime().addShutdownHook(new Thread() {
-    //
-    //            @Override
-    //            public void run() {
-    //                try {
-    //                    client.stop();
-    //                } catch (Exception e) {
-    //                    // ship sinking
-    //                }
-    //            }
-    //        });
-    //
-    //        BufferedReader in =
-    //                new BufferedReader(new InputStreamReader(System.in));
-    //        String cmd;
-    //
-    //        client.start();
-    //        while ((cmd = in.readLine()) != null) {
-    //            if ("exit".equals(cmd)) {
-    //                break;
-    //            } else {
-    //                System.out
-    //                        .println("unknown command. type \"exit\" to shutdown client.");
-    //            }
-    //        }
-    //    }
 }

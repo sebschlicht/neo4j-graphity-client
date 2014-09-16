@@ -96,7 +96,12 @@ abstract public class AbstractGraphityClient implements GraphityClient {
      */
     protected static JSONObject parseJson(String json) {
         try {
-            return (JSONObject) JSON_PARSER.parse(json);
+            JSONObject jsonObject = (JSONObject) JSON_PARSER.parse(json);
+            if (jsonObject.containsKey("error")) {
+                String errorMessage = (String) jsonObject.get("error");
+                throw new IllegalStateException("server error: " + errorMessage);
+            }
+            return jsonObject;
         } catch (ParseException e) {
             e.printStackTrace();
             return null;
